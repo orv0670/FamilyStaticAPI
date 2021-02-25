@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
-from flask import Flask, request, jsonify, url_for
+from flask import Flask, request, jsonify, url_for, json
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from datastructures import FamilyStructure
@@ -26,17 +26,26 @@ def sitemap():
     return generate_sitemap(app)
 
 @app.route('/members', methods=['GET'])
-def handle_hello():
+def get_miembros():
+    miembros = jackson_family.get_todos_los_miembros()
+    return jsonify(miembros), 200
 
-    # this is how you can use the Family datastructure by calling its methods
-    members = jackson_family.get_all_members()
-    response_body = {
-        "hello": "world",
-        "family": members
-    }
+@app.route('/members/<int:miembro_id>', methods=['GET'])
+def get_un_miembro(miembro_id):
+    miembro = jackson_family.get_miembro(miembro_id)
+    return jsonify(miembro), 200
 
+@app.route('/members', methods=['POST'])
+def agregar_miembros():
+    request_body = request.data
+    decoded_object = json.loads(request_body)
+    nuevo_miembro = jackson_family.agregar_miembro(decoded_object)
+    return jsonify(nuevo_miembro)
 
-    return jsonify(response_body), 200
+@app.route('/members/<int:miembro_id>', methods=['DELETE'])
+def eliminar_miembro(miembro_id):
+    miembro = jackson_family.eliminar_miembro(miembro_id)
+    return jsonify(miembro), 200
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
